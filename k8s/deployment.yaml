@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wisecow
+  labels:
+    app: wisecow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wisecow
+  template:
+    metadata:
+      labels:
+        app: wisecow
+    spec:
+      containers:
+        - name: wisecow
+          image: wisecow:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4499
+          readinessProbe:
+            tcpSocket:
+              port: 4499
+            initialDelaySeconds: 1
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 4499
+            initialDelaySeconds: 10
+            periodSeconds: 10

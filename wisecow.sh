@@ -42,10 +42,9 @@ main() {
 
        while true; do
 	       # Listen for a connection, handle one request, then close
-	       nc -l -p $SRVPORT < $RSPFILE &
+	       { nc -l 0.0.0.0 $SRVPORT < $RSPFILE; } &
 	       handleRequest
-	       wait
-	       sleep 0.01
+	       wait $!
        done
 }
 
