@@ -122,9 +122,54 @@ If you prefer manual steps, see the automated script `scripts/kind-run.sh` for t
 
 ## GitHub Actions CI/CD
 
-The workflow `.github/workflows/ci-cd.yml` will build and push an image to GitHub Container Registry at `ghcr.io/<owner>/wisecow:latest` whenever commits are pushed to `main` (or `master`).
+The repository includes an automated CI/CD pipeline (`.github/workflows/ci-cd.yml`) that:
 
-To enable automatic deployment from the workflow, add a repository secret named `KUBE_CONFIG` containing your base64-encoded kubeconfig. The deploy job will decode it and run `kubectl apply` on the manifests.
+### **Continuous Integration**
+- **Automated Testing**: Validates application functionality on every push/PR
+- **Docker Build & Push**: Creates and publishes images to GitHub Container Registry
+- **Quality Gates**: Pipeline stops if tests or builds fail
+
+### **Continuous Deployment**
+- **Automatic Deployment**: Deploys to your Kubernetes cluster after successful builds
+- **Image Updates**: Automatically updates deployments with new container images
+- **Deployment Verification**: Ensures pods are running and healthy after deployment
+
+### **Setup Instructions**
+
+1. **Configure Repository Secret**:
+   ```bash
+   # Encode your kubeconfig (for your local kind cluster or any k8s cluster)
+   cat ~/.kube/config | base64
+   ```
+   - Go to repository Settings → Secrets and Variables → Actions
+   - Add secret named `KUBE_CONFIG` with the base64 encoded content
+
+2. **Optional: Configure Variables** (Settings → Secrets and Variables → Actions → Variables tab):
+   - `ENABLE_AUTO_DEPLOY`: Set to `false` to disable automatic deployment
+   - `CLUSTER_URL`: Display URL for your cluster (e.g., `http://localhost:4499`)
+
+3. **Trigger Deployment**:
+   - Push to `main`, `master`, or `sj-k8s-implementation` branch
+   - The workflow will automatically test, build, and deploy
+
+### **Pipeline Flow**
+```
+Code Push → Test App → Build & Push Image → Deploy to K8s → Verify
+```
+
+### **Image Registry**
+- Images are pushed to: `ghcr.io/{owner}/wisecow`
+- Tags: `latest` (main branch), `{branch}-{sha}`, `{branch}`
+
+### **Monitoring**
+- View pipeline runs in the "Actions" tab
+- Deployment status shows in the "Environments" section
+- Each run includes a summary with access instructions
+
+## Architecture
+
+For comprehensive architecture decisions and technical rationale, see our Architecture Decision Record:
+- **[ADR-001: Overall Architecture](docs/adr/001-overall-architecture.md)** - Complete system architecture, technology choices, and design decisions
 
 ## Notes and next steps
 
