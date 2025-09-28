@@ -1,0 +1,13 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080   # ingress-nginx HTTP NodePort (fixed)
+        hostPort: 4499                    # Host port for HTTP
+        listenAddress: "127.0.0.1"
+        protocol: TCP
+      - containerPort: 30443  # ingress-nginx HTTPS NodePort (fixed)
+        hostPort: 54499                   # Host port for HTTPS
+        listenAddress: "127.0.0.1"
+        protocol: TCP

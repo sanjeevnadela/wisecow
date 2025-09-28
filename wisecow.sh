@@ -14,13 +14,16 @@ get_api() {
 handleRequest() {
     # 1) Process the request
 	get_api
-	mod=`fortune`
-
+	mod=$(fortune)
+	body="<pre>$(cowsay "$mod")</pre>"
+	content_length=$(echo -n "$body" | wc -c)
 cat <<EOF > $RSPFILE
-HTTP/1.1 200
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Content-Length: $content_length
+Connection: close
 
-
-<pre>`cowsay $mod`</pre>
+$body
 EOF
 }
 
@@ -37,10 +40,12 @@ main() {
 	prerequisites
 	echo "Wisdom served on port=$SRVPORT..."
 
-	while [ 1 ]; do
-		cat $RSPFILE | nc -lN $SRVPORT | handleRequest
-		sleep 0.01
-	done
+       while true; do
+	       # Listen for a connection, handle one request, then close
+	       { nc -l 0.0.0.0 $SRVPORT < $RSPFILE; } &
+	       handleRequest
+	       wait $!
+       done
 }
 
 main

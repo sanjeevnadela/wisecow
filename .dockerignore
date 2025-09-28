@@ -1,0 +1,44 @@
+# Version control
+.git
+.gitignore
+
+# CI/CD
+.github/
+*.yml
+*.yaml
+
+# Documentation  
+*.md
+docs/
+README*
+
+# Scripts (not needed in container)
+scripts/
+
+# Generated files
+kind-config.yaml
+temp-kind-config.yaml
+*.key
+*.crt
+
+# Kubernetes manifests
+k8s/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
