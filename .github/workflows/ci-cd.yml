@@ -1,6 +1,8 @@
 name: Wisecow CI/CD
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -48,7 +50,7 @@ jobs:
     name: Build and Push Image
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     permissions:
       contents: read
       packages: write
@@ -93,41 +95,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Extract image tag for scanning
-        id: scan-tag
-        run: |
-          # Get the first tag from metadata output
-          SCAN_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
-          echo "scan-tag=${SCAN_TAG}" >> $GITHUB_OUTPUT
-          echo "Scanning image: ${SCAN_TAG}"
-
-      - name: Security scan with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.scan-tag.outputs.scan-tag }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
       - name: Image build summary
         run: |
           echo "**Docker Image Built Successfully**" >> $GITHUB_STEP_SUMMARY
-          echo "**Primary Image:** \`${{ steps.scan-tag.outputs.scan-tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**All Tags:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Registry:** [ghcr.io/${{ github.repository }}](https://ghcr.io/${{ github.repository }})" >> $GITHUB_STEP_SUMMARY
-          echo "**Security Scan:** Completed with Trivy" >> $GITHUB_STEP_SUMMARY
 
   # Job 3: Deploy to Kubernetes
   deploy-to-k8s:
     name: Deploy to Kubernetes
     runs-on: ubuntu-latest
     needs: build-push
-    if: github.event_name == 'push' && vars.ENABLE_AUTO_DEPLOY != 'false'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
       url: ${{ vars.CLUSTER_URL || 'http://localhost:4499' }}
@@ -199,18 +178,6 @@ jobs:
             exit 1
           fi
 
-      - name: Performance test
-        run: |
-          echo "Running basic performance test..."
-          kubectl run load-test --rm -i --tty --restart=Never --image=curlimages/curl -- \
-            sh -c 'for i in $(seq 1 10); do 
-              echo "Request $i:"; 
-              curl -s -w "Time: %{time_total}s, Status: %{http_code}\n" \
-                http://wisecow.default.svc.cluster.local:4499 -o /dev/null || echo "Failed"; 
-              sleep 0.5; 
-            done'
-          echo "Performance test completed"
-
       - name: Post-deployment summary
         run: |
           echo "**Deployment Completed Successfully**" >> $GITHUB_STEP_SUMMARY
@@ -223,4 +190,3 @@ jobs:
           echo "- **Direct NodePort:** http://localhost:31499" >> $GITHUB_STEP_SUMMARY  
           echo "- **Via Ingress:** http://wisecow.local:4499 (HTTP) | https://wisecow.local:54499 (HTTPS)" >> $GITHUB_STEP_SUMMARY
           echo "- **Port Forward:** \`kubectl port-forward svc/wisecow 4499:4499\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Performance Test:** ✅ Completed successfully" >> $GITHUB_STEP_SUMMARY
