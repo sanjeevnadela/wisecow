@@ -103,8 +103,8 @@ curl -v http://wisecow.local:4499/
 curl -vk https://wisecow.local:54499/
 
 # Or via port-forward
-kubectl port-forward svc/wisecow 4499:4499
-curl http://localhost:4499
+kubectl port-forward svc/wisecow-service 8080:80
+curl http://localhost:8080
 ```
 
 ### Manual Setup (Advanced)

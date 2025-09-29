@@ -178,8 +178,8 @@ HTTP:   http://wisecow.local:4499/
 HTTPS:  https://wisecow.local:54499/
 
 Or via port-forward:
-kubectl port-forward svc/wisecow 4499:4499
-# Then visit http://localhost:4499
+kubectl port-forward svc/wisecow-service 8080:80
+# Then visit http://localhost:8080
 
 Health Monitoring:
 - View health monitor logs: kubectl logs -l app=health-monitor
