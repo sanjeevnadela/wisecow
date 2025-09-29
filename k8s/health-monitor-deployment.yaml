@@ -23,7 +23,7 @@ spec:
           - -c
           - |
             # Install required packages
-            apk add --no-cache curl python3 py3-urllib3
+            apk add --no-cache curl python3 py3-urllib3 kubectl
             
             # Copy health monitoring scripts
             cp /scripts/*.sh /scripts/*.py /tmp/
@@ -36,7 +36,7 @@ spec:
               echo "=== System Health Check $(date) ==="
               /tmp/system-health-monitor-cross.sh
               echo "=== Application Health Check $(date) ==="
-              python3 /tmp/k8s-app-health-checker.py -k -n ${NAMESPACE:-default} -a wisecow
+              python3 /tmp/k8s-app-health-checker.py -k -n ${NAMESPACE:-default} -a wisecow http://wisecow-service:80
               echo "Waiting ${CHECK_INTERVAL:-60} seconds..."
               sleep ${CHECK_INTERVAL:-60}
             done

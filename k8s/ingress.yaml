@@ -18,6 +18,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: wisecow
+                name: wisecow-service
                 port:
-                  number: 4499
+                  number: 80

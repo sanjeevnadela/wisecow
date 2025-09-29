@@ -214,13 +214,33 @@ jobs:
           echo "Running comprehensive health checks..."
           
           # Wait for application to be fully ready
-          sleep 10
+          echo "Waiting for service to be ready..."
+          sleep 30
+          
+          # Debug: Check service and endpoints
+          echo "=== Service Status ==="
+          kubectl get svc wisecow-service
+          kubectl get endpoints wisecow-service
+          
+          # Debug: Check if pods are actually ready
+          echo "=== Pod Status ==="
+          kubectl get pods -l app=wisecow -o wide
+          kubectl describe pods -l app=wisecow
+          
+          # Debug: Check service connectivity from within cluster
+          echo "=== Testing DNS Resolution ==="
+          kubectl run test-dns --image=busybox --rm -it --restart=Never -- nslookup wisecow-service || true
+          
+          # Debug: Test service connectivity
+          echo "=== Testing Service Connectivity ==="
+          kubectl run test-connectivity --image=busybox --rm -it --restart=Never -- wget -qO- http://wisecow-service:80 || true
           
           # Run application health check
+          echo "=== Running Health Check ==="
           python3 scripts/k8s-app-health-checker.py -k -n default -a wisecow http://wisecow-service:80
           
           # Check health monitor logs
-          echo "Health monitor logs:"
+          echo "=== Health Monitor Logs ==="
           kubectl logs -l app=health-monitor --tail=20
 
       - name: Post-deployment summary
@@ -232,6 +252,6 @@ jobs:
           
           # Show access instructions
           echo "## Access Your Application" >> $GITHUB_STEP_SUMMARY
-          echo "- **Direct NodePort:** http://localhost:31499" >> $GITHUB_STEP_SUMMARY  
-          echo "- **Via Ingress:** http://wisecow.local:4499 (HTTP) | https://wisecow.local:54499 (HTTPS)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Port Forward:** \`kubectl port-forward svc/wisecow 4499:4499\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service:** \`wisecow-service:80\` (internal cluster access)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Port Forward:** \`kubectl port-forward svc/wisecow-service 8080:80\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health Check:** \`python3 scripts/k8s-app-health-checker.py -k http://wisecow-service:80\`" >> $GITHUB_STEP_SUMMARY
