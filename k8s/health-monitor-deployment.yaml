@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-monitor
+  labels:
+    app: health-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: health-monitor
+  template:
+    metadata:
+      labels:
+        app: health-monitor
+    spec:
+      serviceAccountName: health-monitor
+      containers:
+      - name: system-health-monitor
+        image: alpine:latest
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            # Install required packages
+            apk add --no-cache curl python3 py3-urllib3
+            
+            # Copy health monitoring scripts
+            cp /scripts/*.sh /scripts/*.py /tmp/
+            chmod +x /tmp/*.sh /tmp/*.py
+            
+            echo "Starting system health monitoring..."
+            
+            # Run continuous system health monitoring
+            while true; do
+              echo "=== System Health Check $(date) ==="
+              /tmp/system-health-monitor-cross.sh
+              echo "=== Application Health Check $(date) ==="
+              python3 /tmp/k8s-app-health-checker.py -k -n ${NAMESPACE:-default} -a wisecow
+              echo "Waiting ${CHECK_INTERVAL:-60} seconds..."
+              sleep ${CHECK_INTERVAL:-60}
+            done
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CHECK_INTERVAL
+          valueFrom:
+            configMapKeyRef:
+              name: health-monitor-config
+              key: check_interval
+        - name: CPU_THRESHOLD
+          valueFrom:
+            configMapKeyRef:
+              name: health-monitor-config
+              key: cpu_threshold
+        - name: MEMORY_THRESHOLD
+          valueFrom:
+            configMapKeyRef:
+              name: health-monitor-config
+              key: memory_threshold
+        - name: DISK_THRESHOLD
+          valueFrom:
+            configMapKeyRef:
+              name: health-monitor-config
+              key: disk_threshold
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+        - name: logs
+          mountPath: /var/log
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: scripts
+        configMap:
+          name: health-monitor-scripts
+          defaultMode: 0755
+      - name: logs
+        emptyDir: {}

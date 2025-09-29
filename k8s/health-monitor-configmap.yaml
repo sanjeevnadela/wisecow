@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: health-monitor-config
+  labels:
+    app: health-monitor
+data:
+  # Health check configuration
+  cpu_threshold: "80"
+  memory_threshold: "80"
+  disk_threshold: "85"
+  check_interval: "60"
+  
+  # Application health check configuration
+  app_url: "http://wisecow-service:80"
+  app_timeout: "10"
+  
+  # Logging configuration
+  log_level: "INFO"
+  log_file: "/var/log/health-monitor.log"
+  alert_file: "/var/log/health-alerts.log"
