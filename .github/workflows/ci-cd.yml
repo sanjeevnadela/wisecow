@@ -180,12 +180,24 @@ jobs:
           kubectl rollout status deployment/wisecow --timeout=180s
           echo "Rollback completed"
 
+      - name: Deploy health monitoring
+        run: |
+          echo "Deploying health monitoring..."
+          kubectl apply -f k8s/health-monitor-configmap.yaml
+          kubectl apply -f k8s/health-monitor-scripts-configmap.yaml
+          kubectl apply -f k8s/health-monitor-rbac.yaml
+          kubectl apply -f k8s/health-monitor-deployment.yaml
+          
+          # Wait for health monitor to be ready
+          kubectl wait --for=condition=available --timeout=120s deployment/health-monitor
+
       - name: Verify deployment
         run: |
           echo "Verifying deployment..."
           kubectl get pods -l app=wisecow
           kubectl get svc wisecow
           kubectl get ingress wisecow-ingress
+          kubectl get pods -l app=health-monitor
           
           # Check if pods are running
           RUNNING_PODS=$(kubectl get pods -l app=wisecow --field-selector=status.phase=Running --no-headers | wc -l)
@@ -196,6 +208,20 @@ jobs:
             kubectl describe pods -l app=wisecow
             exit 1
           fi
+
+      - name: Run health checks
+        run: |
+          echo "Running comprehensive health checks..."
+          
+          # Wait for application to be fully ready
+          sleep 10
+          
+          # Run application health check
+          python3 scripts/k8s-app-health-checker.py -k -n default -a wisecow http://wisecow-service:80
+          
+          # Check health monitor logs
+          echo "Health monitor logs:"
+          kubectl logs -l app=health-monitor --tail=20
 
       - name: Post-deployment summary
         run: |

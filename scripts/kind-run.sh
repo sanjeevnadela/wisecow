@@ -153,6 +153,15 @@ kubectl create secret tls wisecow-tls --cert=wisecow.crt --key=wisecow.key --dry
 echo "Applying ingress..."
 kubectl apply -f k8s/ingress.yaml
 
+echo "Deploying health monitoring..."
+kubectl apply -f k8s/health-monitor-configmap.yaml
+kubectl apply -f k8s/health-monitor-scripts-configmap.yaml
+kubectl apply -f k8s/health-monitor-rbac.yaml
+kubectl apply -f k8s/health-monitor-deployment.yaml
+
+echo "Waiting for health monitor to be ready..."
+kubectl wait --for=condition=available --timeout=120s deployment/health-monitor
+
 echo "
 NOTE: Add this line to your /etc/hosts file if not present:
 127.0.0.1 wisecow.local
@@ -171,6 +180,11 @@ HTTPS:  https://wisecow.local:54499/
 Or via port-forward:
 kubectl port-forward svc/wisecow 4499:4499
 # Then visit http://localhost:4499
+
+Health Monitoring:
+- View health monitor logs: kubectl logs -l app=health-monitor
+- Run manual health check: python3 scripts/k8s-app-health-checker.py -k http://wisecow.local:4499
+- Check all resources: kubectl get all -l app=wisecow
 
 NOTE: If the above URLs don't work, the NodePorts may have changed.
 Current NodePorts: HTTP=${HTTP_NODEPORT}, HTTPS=${HTTPS_NODEPORT}
