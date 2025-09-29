@@ -1,0 +1,124 @@
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+logs/
+temp/
+tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Security sensitive files
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+secrets/
+.env
+.env.local
+.env.production
+.env.staging
+
+# Docker generated files
+.dockerignore.bak
+
+# Kubernetes secrets and sensitive configs
+*-secret.yaml
+*-secrets.yaml
+secret-*.yaml
+secrets-*.yaml
+
+# Build artifacts and dependencies
+node_modules/
+vendor/
+dist/
+build/
+target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Test and coverage reports
+coverage/
+.coverage
+*.cover
+.pytest_cache/
+.tox/
+.nyc_output/
+
+# Application specific
+# Health check and monitoring logs
+health-*.log
+system-*.log
+*-alerts.log
+health-report-*.json
+status-history-*.txt
+
+# Backup files
+*.bak
+*.backup
+backup-*
+*.orig
+
+# Configuration overrides
+config.local.*
+*-local.conf
+*.override.conf
+
+# Runtime files
+pid/
+*.pid
+*.sock
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+cache/
+
+# Temporary Kubernetes files
+temp-*.yaml
+*-temp.yaml
+
+# Local development files
+local/
+dev/
+development/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Certificate authority and generated certificates (except for demo purposes)
+ca/
+certs/
+ssl/
+
+# Helm charts temporary files
+charts/*/charts/
+charts/*/tmpcharts/
+charts/*/Chart.lock
+
+# Kind cluster config backups
+kind-config-*.yaml
