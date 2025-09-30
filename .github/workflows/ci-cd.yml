@@ -195,7 +195,7 @@ jobs:
         run: |
           echo "Verifying deployment..."
           kubectl get pods -l app=wisecow
-          kubectl get svc wisecow
+          kubectl get svc wisecow-service
           kubectl get ingress wisecow-ingress
           kubectl get pods -l app=health-monitor
           
